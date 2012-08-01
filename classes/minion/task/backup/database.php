@@ -1,12 +1,15 @@
 <?php defined('SYSPATH') or die('No direct script access.');
 
 /**
- * Backup databases
+ * Backup mysql databases.
+ * Requires mysqldump to be installed.
  *
  * --instance=default
  * Optional.  If no instance is specified, it will attempt to backup
  * all defined kohana instances.
  *
+ * --gzip=true
+ * Optional.  Compress backup.
  *
  * @author Barrett Amos <barrett.amos@gmail.com>
  */
@@ -54,6 +57,10 @@ class Minion_Task_Backup_Database extends Minion_Task {
 			$instances = $db_config;
 		}
 		
+		//Check for compression settings
+		$gzip = array_key_exists('gzip', $config);
+		$gzip = ($gzip) ? (bool) $config['gzip'] : $k_config->get('gzip');
+		
 		//Check for mysqldump
 		$mysqldump = exec("which mysqldump");
 		
@@ -68,7 +75,6 @@ class Minion_Task_Backup_Database extends Minion_Task {
 		
 		$directory 	= $k_config->get('directory');
 		$name 		= $k_config->get('file_name');
-		$gzip 		= $k_config->get('gzip');
 		
 		$status = array();
 		
@@ -86,7 +92,7 @@ class Minion_Task_Backup_Database extends Minion_Task {
 				"%TYPE%"		=> "db",
 			);
 			
-			$file = $directory."/".strtr($name,$tokens);
+			$file = $directory."/".strtr($name,$tokens).".sql";
 			
 			//mysqldump -h $DB1_HOST Ñport $DB1_PORT $DB1_NAME -u $DB1_USER -p $DB1_PASS | gzip > $DIR/bk_`date +\%Y\%m-\%d`.sql.gz
 			$exec = "mysqldump";
